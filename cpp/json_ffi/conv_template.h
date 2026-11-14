@@ -125,6 +125,7 @@ struct Conversation {
   // before the last user message are affected.
   bool strip_reasoning_in_history = false;
   std::string reasoning_history_style = "default";
+  std::string qwen3_8_reasoning_effort = "xhigh";
 
   Conversation();
 
