@@ -3,6 +3,7 @@
  * \file serve/engine_actions/batch_verify.cc
  */
 
+#include <algorithm>
 #include <cmath>
 #include <exception>
 
@@ -41,6 +42,12 @@ class BatchJumpForwardActionObj : public EngineActionObj {
     {
       NVTXScopedRange nvtx_scope("BatchJumpForward getting requests");
       running_rsentries = estate->GetRunningRequestStateEntries();
+      // Do not reserve jump-forward space for requests that only need ordinary decode.
+      if (std::none_of(
+              running_rsentries.begin(), running_rsentries.end(),
+              [this](const RequestStateEntry& rsentry) { return CanJumpForward(rsentry); })) {
+        return {};
+      }
       while (!CheckMemForJumpForward(running_rsentries.size())) {
         if (estate->prefix_cache->TryFreeMemory()) continue;
         RequestStateEntry preempted =
